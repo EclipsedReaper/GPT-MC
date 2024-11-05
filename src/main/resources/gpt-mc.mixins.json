@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"package": "com.bg03.gptmc.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"ExampleMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
