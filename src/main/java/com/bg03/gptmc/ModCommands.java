@@ -10,27 +10,29 @@ public class ModCommands {
 
     public static void registerCommands() {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
-            dispatcher.register(CommandManager.literal("mcgpt")
-                    .then(CommandManager.literal("enable")
-                            .executes(context -> {
-                                ServerCommandSource source = context.getSource();
-                                ConfigHandler.setGodMode(!ConfigHandler.isGodMode());
-                                source.sendFeedback(() -> Text.of("God mode has been enabled"), true);
-                                return 1;
-                            })
-                    ).then(CommandManager.literal("disable")
-                            .executes(context -> {
-                                ServerCommandSource source = context.getSource();
-                                ConfigHandler.setGodMode(!ConfigHandler.isGodMode());
-                                source.sendFeedback(() -> Text.of("God mode has been disabled"), true);
-                                return 1;
-                            })
-                    ).then(CommandManager.literal("status")
-                            .executes(context -> {
-                                ServerCommandSource source = context.getSource();
-                                source.sendFeedback(() -> Text.of("God mode is " + (ConfigHandler.isGodMode() ? "enabled" : "disabled")), true);
-                                return 1;
-                            })
+            dispatcher.register(CommandManager.literal("gptmc")
+                    .then(CommandManager.literal("godmode")
+                            .then(CommandManager.literal("enable")
+                                    .executes(context -> {
+                                        ServerCommandSource source = context.getSource();
+                                        ConfigHandler.setGodMode(true);
+                                        source.sendFeedback(() -> Text.of("God mode has been enabled"), true);
+                                        return 1;
+                                    })
+                            ).then(CommandManager.literal("disable")
+                                    .executes(context -> {
+                                        ServerCommandSource source = context.getSource();
+                                        ConfigHandler.setGodMode(false);
+                                        source.sendFeedback(() -> Text.of("God mode has been disabled"), true);
+                                        return 1;
+                                    })
+                            ).then(CommandManager.literal("status")
+                                    .executes(context -> {
+                                        ServerCommandSource source = context.getSource();
+                                        source.sendFeedback(() -> Text.of("God mode is " + (ConfigHandler.isGodMode() ? "enabled" : "disabled")), false);
+                                        return 1;
+                                    })
+                            )
                     ).then(CommandManager.literal("morals")
                             .then(CommandManager.literal("set") // Set god mode morals to the argument
                                     .then(CommandManager.argument("morals", StringArgumentType.greedyString())
@@ -42,7 +44,7 @@ public class ModCommands {
                                                 return 1;
                                             })
                                     )
-                            ).then(CommandManager.literal("reset") // Clear god mode morals
+                            ).then(CommandManager.literal("clear") // Clear god mode morals
                                     .executes(context -> {
                                         ServerCommandSource source = context.getSource();
                                         ConfigHandler.setGodModeMorals("");
@@ -60,7 +62,7 @@ public class ModCommands {
                             .then(CommandManager.literal("set") // Set minimum events to the argument
                                     .then(CommandManager.argument("minevents", StringArgumentType.word())
                                             .executes(context -> {
-                                                int events = Integer.parseInt(StringArgumentType.getString(context, "minevents"));
+                                                int events = Integer.parseInt(StringArgumentType.getString(context, "minimumevents"));
                                                 ServerCommandSource source = context.getSource();
                                                 ConfigHandler.setMinEvents(events);
                                                 source.sendFeedback(() -> Text.of("Minimum events set to: " + events), true);
@@ -76,7 +78,7 @@ public class ModCommands {
                             ).then(CommandManager.literal("reset") // Reset minimum events
                                     .executes(context -> {
                                         ServerCommandSource source = context.getSource();
-                                        ConfigHandler.setMinEvents(30);
+                                        ConfigHandler.setMinEvents(3);
                                         source.sendFeedback(() -> Text.of("Minimum events reset"), true);
                                         return 1;
                                     })

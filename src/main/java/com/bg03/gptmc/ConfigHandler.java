@@ -13,7 +13,7 @@ public class ConfigHandler {
     private static final Path CONFIG_PATH = FabricLoader.getInstance().getConfigDir().resolve("gptmc_config.json");
     private static final Gson GSON = new Gson();
     private static int summarizationInterval = 30; // Default interval in seconds
-    private static boolean godMode = false;
+    private static boolean godMode = true;
     private static String eventSummary = ""; // Stores a summary of recent events
     private static String godModeMorals = "";
     private static int minEvents = 3; // Minimum number of events to summarize
