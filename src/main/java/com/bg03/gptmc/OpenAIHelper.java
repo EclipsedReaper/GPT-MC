@@ -1,9 +1,9 @@
 package com.bg03.gptmc;
 
 import com.google.gson.JsonParser;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
+import net.minecraft.entity.TntEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -21,6 +21,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
+import static com.bg03.gptmc.ModEventListeners.recentActions;
 
 public class OpenAIHelper {
     public static final String API_KEY = System.getenv("OPENAI_API_KEY");
@@ -110,6 +112,7 @@ public class OpenAIHelper {
                 "`effect <player> <effect> <duration> <amplifier>` will effect a player with a potion effect. Make sure to use real minecraft effects (for example, `minecraft:strength`). Duration is in seconds, and an amplifier of 0 is a level 1 effect, an amplifier of 2 is a level 3 effect, etc. " +
                 "`time <day / night>` will change the time of day, " +
                 "`heal <player>` will heal a player to max health, " +
+                "`explode <player>` will explode a player. " +
                 //"`enchant <player> <enchantment> <level> <head/chest/legs/feet/hand>` will enchant the item with an enchantment at the level specified, in the slot specified. " +
                 "You can also use `say <message>` to send a message to all players. You can send multiple commands by separating them with a '|', like this: `give player minecraft:diamond 1 | give player minecraft:netherite_ingot 1`. You must only send the command in the exact format specified, otherwise the commands will not work. Don't use any symbols in your commands, only the commands themselves and the text meant to be contained within. However, you can use commas, periods, colons, semicolons, exclamation points and question marks in your `say` messages. Also, don't use any quotation marks or tildes, as those will mess with the formatting. Your morals are: " + ConfigHandler.getGodModeMorals())
                 : getResponseFromOpenAI(prompt, model, "You are a Minecraft helper. Your job is to assist players in a Minecraft world. You will be given a prompt describing a situation, and you must respond with a helpful message to guide the player. You can provide information, suggestions, or instructions to help the player progress in the game.");
@@ -132,7 +135,8 @@ public class OpenAIHelper {
                         "Make sure to provide a clear and concise summary of the events, and ensure that the summary is accurate and relevant to the events that have occurred, both in the past and the present. " +
                         "Make sure to use the previous summary as a reference, and build upon it to create a new summary that is informative and useful to the AI. " +
                         "Do not try to explain the events that have happened, only summarize them as they happened." +
-                        "For example, if a player breaks 50 deepslate in a 30 second period, and then breaks 15 deepslate and 3 diamond ore in the next, you might say, 'Player broke 65 deepslate and then found diamonds.' But if something happened in the past, like a few minutes ago, don't bother including it.");
+                        "For example, if a player breaks 50 deepslate in a 30 second period, and then breaks 15 deepslate and 3 diamond ore in the next, you might say, 'Player broke 65 deepslate and then found diamonds.' But if something happened in the past, like a few minutes ago, don't bother including it. " +
+                        "If you are given an action made by 'GPT' you should address it in the second person, as if you are talking to another AI. For example, 'GPT set the time to day' should be summarized as 'You set the time to day.'");
     }
 
     public static void evaluateResponse(String response) {
@@ -153,6 +157,7 @@ public class OpenAIHelper {
                 PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
                 if (player != null) {
                     player.sendMessage(Text.of(message), false);
+                    recentActions.add("GPT said: " + message);
                 }
             }
         } else if (response.contains("give")) {
@@ -166,47 +171,48 @@ public class OpenAIHelper {
                     Item item = Registries.ITEM.get(Identifier.of(itemName));
                     ItemStack stack = new ItemStack(item, count);
                     player.giveItemStack(stack);
-                    GPTMC.LOGGER.info("GPT gave " + count + " of " + itemName + " to player: " + playerName);
+                    recentActions.add("GPT gave " + count + " of " + itemName + " to " + playerName);
+                    GPTMC.LOGGER.info("GPT gave " + count + " of " + itemName + " to " + playerName);
                 }
             }
         } else if (response.contains("smite")) {
             String playerName = response.substring(6).trim();
             PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
             if (player != null) {
-                Entity entity = new LightningEntity(EntityType.LIGHTNING_BOLT, player.getWorld());
-                entity.updatePosition(player.getX(), player.getY(), player.getZ());
-                player.getWorld().spawnEntity(entity);
-                GPTMC.LOGGER.info("GPT struck player with lightning: " + playerName);
+                LightningEntity lightning = new LightningEntity(EntityType.LIGHTNING_BOLT, player.getWorld());
+                lightning.updatePosition(player.getX(), player.getY(), player.getZ());
+                player.getWorld().spawnEntity(lightning);
+                recentActions.add("GPT struck " + playerName + " with lightning");
+                GPTMC.LOGGER.info("GPT struck " + playerName + " with lightning");
             }
         } else if (response.contains("clear")) {
             String playerName = response.substring(6).trim();
             PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
             if (player != null) {
                 player.getInventory().clear();
-                GPTMC.LOGGER.info("GPT cleared inventory of player: " + playerName);
+                recentActions.add("GPT cleared inventory of " + playerName);
+                GPTMC.LOGGER.info("GPT cleared inventory of " + playerName);
             }
         } else if (response.contains("lightning")) {
             String playerName = response.substring(10).trim();
             PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
             if (player != null) {
                 Timer timer = new Timer();
-                Entity entity = new LightningEntity(EntityType.LIGHTNING_BOLT, player.getWorld());
-                entity.updatePosition(player.getX(), player.getY(), player.getZ());
-                player.getWorld().spawnEntity(entity);
                 timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
-                        Entity entity = new LightningEntity(EntityType.LIGHTNING_BOLT, player.getWorld());
+                        LightningEntity entity = new LightningEntity(EntityType.LIGHTNING_BOLT, player.getWorld());
                         entity.updatePosition(player.getX(), player.getY(), player.getZ());
                         player.getWorld().spawnEntity(entity);
 
                         if (player.isDead()) {
                             timer.cancel();
+                            recentActions.add("GPT repeatedly struck " + playerName + " with lightning until they died");
+                            GPTMC.LOGGER.info("GPT repeatedly struck " + playerName + " with lightning until they died");
                         }
                     }
-                }, 50, 50);
+                }, 0, 50);
             }
-                GPTMC.LOGGER.info("GPT repeatedly struck player with lightning to death: " + playerName);
 
         } else if (response.contains("whisper")) {
             String[] parts = response.substring(8).trim().split(" ");
@@ -216,7 +222,8 @@ public class OpenAIHelper {
                 PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
                 if (player != null) {
                     player.sendMessage(Text.of(message), false);
-                    GPTMC.LOGGER.info("GPT whispered message to player: " + playerName + " - " + message);
+                    recentActions.add("GPT whispered message to " + playerName + " - " + message);
+                    GPTMC.LOGGER.info("GPT whispered message to " + playerName + " - " + message);
                 }
             }
 
@@ -231,7 +238,8 @@ public class OpenAIHelper {
                 if (player != null) {
                     StatusEffectInstance effect = new StatusEffectInstance(PlayerUtils.getEffectByName(effectName), duration, amplifier, false, true);
                     player.addStatusEffect(effect);
-                    GPTMC.LOGGER.info("GPT applied effect " + effectName + " to player: " + playerName + " for " + duration + " seconds");
+                    recentActions.add("GPT applied " + effectName + " to " + playerName + " for " + duration + " seconds");
+                    GPTMC.LOGGER.info("GPT applied " + effectName + " to " + playerName + " for " + duration + " seconds");
                 }
             }
         } else if (response.contains("time")) {
@@ -239,9 +247,11 @@ public class OpenAIHelper {
             ServerWorld world = GPTMC.server.getWorld(GPTMC.server.getOverworld().getRegistryKey());
             if (time.equals("day")) {
                 world.setTimeOfDay(1000);
+                recentActions.add("GPT set time to day");
                 GPTMC.LOGGER.info("GPT set time to day");
             } else if (time.equals("night")) {
                 world.setTimeOfDay(13000);
+                recentActions.add("GPT set time to night");
                 GPTMC.LOGGER.info("GPT set time to night");
             }
 
@@ -252,7 +262,19 @@ public class OpenAIHelper {
                 player.setHealth(player.getMaxHealth());
                 player.getHungerManager().setFoodLevel(20);
                 player.getHungerManager().setSaturationLevel(5.0F);
-                GPTMC.LOGGER.info("GPT healed player to max health: " + playerName);
+                recentActions.add("GPT healed " + playerName + " to max health");
+                GPTMC.LOGGER.info("GPT healed " + playerName + " to max health");
+            }
+        } else if (response.contains("explode")) {
+            String playerName = response.substring(8).trim();
+            PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
+            if (player != null) {
+                TntEntity tnt = new TntEntity(EntityType.TNT, player.getWorld());
+                tnt.updatePosition(player.getX(), player.getY(), player.getZ());
+                tnt.setFuse(0);
+                player.getWorld().spawnEntity(tnt);
+                recentActions.add("GPT exploded " + playerName);
+                GPTMC.LOGGER.info("GPT exploded " + playerName);
             }
         } //else if (response.contains("enchant")) {
 //            String[] parts = response.substring(8).trim().split(" ");

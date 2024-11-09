@@ -14,7 +14,7 @@ import java.util.TimerTask;
 import static com.bg03.gptmc.PlayerUtils.sendMessageToOperators;
 
 public class ModEventListeners {
-    private static final List<String> recentActions = new ArrayList<>();
+    public static final List<String> recentActions = new ArrayList<>();
     private static final Timer timer = new Timer(true);
     private static Timer summarizationTimer = new Timer(true);
     static int oldTime = ConfigHandler.getSummarizationInterval();
