@@ -18,6 +18,7 @@ public class ConfigHandler {
     private static String godModeMorals = "";
     private static int minEvents = 3; // Minimum number of events to summarize
     private static boolean reportSummary = false;
+    private static boolean reportResponse = false;
 
     // Load the configuration
     public static void loadConfig() {
@@ -30,6 +31,7 @@ public class ConfigHandler {
                 godModeMorals = config.has("godModeMorals") ? config.get("godModeMorals").getAsString() : godModeMorals;
                 minEvents = config.has("minEvents") ? config.get("minEvents").getAsInt() : minEvents;
                 reportSummary = config.has("reportSummary") ? config.get("reportSummary").getAsBoolean() : reportSummary;
+                reportResponse = config.has("reportResponse") ? config.get("reportResponse").getAsBoolean() : reportResponse;
             } catch (IOException | JsonSyntaxException e) {
                 e.printStackTrace();
             }
@@ -47,6 +49,7 @@ public class ConfigHandler {
         config.addProperty("godModeMorals", godModeMorals);
         config.addProperty("minEvents", minEvents);
         config.addProperty("reportSummary", reportSummary);
+        config.addProperty("reportResponse", reportResponse);
 
         try (var writer = Files.newBufferedWriter(CONFIG_PATH, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
             GSON.toJson(config, writer);
@@ -102,15 +105,26 @@ public class ConfigHandler {
         return minEvents;
     }
 
-    public static void setMinEvents(int minEvents) {
-        ConfigHandler.minEvents = minEvents;
+    public static void setMinEvents(int minimumEvents) {
+        minEvents = minimumEvents;
+        saveConfig();
     }
 
     public static boolean isReportSummary() {
         return reportSummary;
     }
 
-    public static void setReportSummary(boolean reportSummary) {
-        ConfigHandler.reportSummary = reportSummary;
+    public static void setReportSummary(boolean repSummary) {
+        reportSummary = repSummary;
+        saveConfig();
+    }
+
+    public static void setReportResponse(boolean repResponse) {
+        reportResponse = repResponse;
+        saveConfig();
+    }
+
+    public static boolean isReportResponse() {
+        return reportResponse;
     }
 }

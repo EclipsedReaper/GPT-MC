@@ -1,14 +1,19 @@
-package com.bg03.gptmc;
+package com.bg03.gptmc.openai;
 
+import com.bg03.gptmc.ConfigHandler;
+import com.bg03.gptmc.GPTMC;
+import com.bg03.gptmc.ModEventListeners;
+import com.bg03.gptmc.PlayerUtils;
+import com.bg03.gptmc.timers.GPTMCLightningTimer;
 import com.google.gson.JsonParser;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.TntEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
@@ -17,12 +22,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static com.bg03.gptmc.GPTMC.server;
 import static com.bg03.gptmc.ModEventListeners.recentActions;
+import static com.bg03.gptmc.PlayerUtils.smitePlayer;
 
 public class OpenAIHelper {
     public static final String API_KEY = System.getenv("OPENAI_API_KEY");
@@ -34,7 +39,6 @@ public class OpenAIHelper {
 
     public static CompletableFuture<String> getResponseFromOpenAI(String prompt, String model, String systemInstructions) {
         return CompletableFuture.supplyAsync(() -> {
-            GPTMC.LOGGER.info("Starting getResponseFromOpenAI with prompt: " + prompt);
 
             if (API_KEY == null || API_KEY.isEmpty()) {
                 GPTMC.LOGGER.info("API Key is missing.");
@@ -53,17 +57,14 @@ public class OpenAIHelper {
             systemMessage.addProperty("role", "system");
             systemMessage.addProperty("content", systemInstructions);
             messages.add(systemMessage);
-            GPTMC.LOGGER.info("Added system instructions to messages.");
 
             // Add the user message
             JsonObject userMessage = new JsonObject();
             userMessage.addProperty("role", "user");
             userMessage.addProperty("content", prompt);
             messages.add(userMessage);
-            GPTMC.LOGGER.info("Added user prompt to messages.");
 
             json.add("messages", messages);
-            GPTMC.LOGGER.info("JSON payload for OpenAI API: " + json.toString());
 
             RequestBody body = RequestBody.create(
                     json.toString(),
@@ -77,24 +78,19 @@ public class OpenAIHelper {
                     .build();
 
             try (Response response = client.newCall(request).execute()) {
-                GPTMC.LOGGER.info("OpenAI API request sent.");
 
                 if (response.isSuccessful() && response.body() != null) {
                     String responseBody = response.body().string();
-                    GPTMC.LOGGER.info("Received response from OpenAI: " + responseBody);
 
                     JsonObject responseJson = JsonParser.parseString(responseBody).getAsJsonObject();
                     JsonArray choices = responseJson.getAsJsonArray("choices");
 
                     String content = choices.get(0).getAsJsonObject().getAsJsonObject("message").get("content").getAsString();
-                    GPTMC.LOGGER.info("Extracted content from OpenAI response: " + content);
                     return content;
                 } else {
-                    GPTMC.LOGGER.info("Failed to receive successful response: " + response);
                     throw new IOException("Unexpected code " + response);
                 }
             } catch (IOException e) {
-                GPTMC.LOGGER.info("Error occurred while calling OpenAI API: " + e.getMessage());
                 e.printStackTrace();
                 return "Error: " + e.getMessage();
             }
@@ -153,7 +149,7 @@ public class OpenAIHelper {
     private static void evaluateCommand(String response) {
         if (response.contains("say")) {
             String message = response.substring(4).trim();
-            for (String playerName : GPTMC.server.getPlayerNames()) {
+            for (String playerName : server.getPlayerNames()) {
                 PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
                 if (player != null) {
                     player.sendMessage(Text.of(message), false);
@@ -178,13 +174,9 @@ public class OpenAIHelper {
         } else if (response.contains("smite")) {
             String playerName = response.substring(6).trim();
             PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
-            if (player != null) {
-                LightningEntity lightning = new LightningEntity(EntityType.LIGHTNING_BOLT, player.getWorld());
-                lightning.updatePosition(player.getX(), player.getY(), player.getZ());
-                player.getWorld().spawnEntity(lightning);
-                recentActions.add("GPT struck " + playerName + " with lightning");
-                GPTMC.LOGGER.info("GPT struck " + playerName + " with lightning");
-            }
+            smitePlayer(player);
+            recentActions.add("GPT struck " + playerName + " with lightning");
+            GPTMC.LOGGER.info("GPT struck " + playerName + " with lightning");
         } else if (response.contains("clear")) {
             String playerName = response.substring(6).trim();
             PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
@@ -195,23 +187,13 @@ public class OpenAIHelper {
             }
         } else if (response.contains("lightning")) {
             String playerName = response.substring(10).trim();
-            PlayerEntity player = PlayerUtils.getPlayerByName(playerName);
+            ServerPlayerEntity player = PlayerUtils.getPlayerByName(playerName);
             if (player != null) {
-                Timer timer = new Timer();
-                timer.schedule(new TimerTask() {
-                    @Override
-                    public void run() {
-                        LightningEntity entity = new LightningEntity(EntityType.LIGHTNING_BOLT, player.getWorld());
-                        entity.updatePosition(player.getX(), player.getY(), player.getZ());
-                        player.getWorld().spawnEntity(entity);
-
-                        if (player.isDead()) {
-                            timer.cancel();
-                            recentActions.add("GPT repeatedly struck " + playerName + " with lightning until they died");
-                            GPTMC.LOGGER.info("GPT repeatedly struck " + playerName + " with lightning until they died");
-                        }
-                    }
-                }, 0, 50);
+                GPTMCLightningTimer.setPlayerTimer(player);
+                recentActions.add("GPT struck " + playerName + " with lightning repeatedly");
+                GPTMC.LOGGER.info("GPT struck " + playerName + " with lightning repeatedly");
+            } else {
+                GPTMC.LOGGER.info("Player not found: " + playerName);
             }
 
         } else if (response.contains("whisper")) {
@@ -244,7 +226,7 @@ public class OpenAIHelper {
             }
         } else if (response.contains("time")) {
             String time = response.substring(5).trim();
-            ServerWorld world = GPTMC.server.getWorld(GPTMC.server.getOverworld().getRegistryKey());
+            ServerWorld world = server.getWorld(server.getOverworld().getRegistryKey());
             if (time.equals("day")) {
                 world.setTimeOfDay(1000);
                 recentActions.add("GPT set time to day");

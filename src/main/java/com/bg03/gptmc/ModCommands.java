@@ -1,5 +1,6 @@
 package com.bg03.gptmc;
 
+import com.bg03.gptmc.openai.OpenAIHelper;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;
@@ -62,7 +63,7 @@ public class ModCommands {
                             .then(CommandManager.literal("set") // Set minimum events to the argument
                                     .then(CommandManager.argument("minevents", StringArgumentType.word())
                                             .executes(context -> {
-                                                int events = Integer.parseInt(StringArgumentType.getString(context, "minimumevents"));
+                                                int events = Integer.parseInt(StringArgumentType.getString(context, "minevents"));
                                                 ServerCommandSource source = context.getSource();
                                                 ConfigHandler.setMinEvents(events);
                                                 source.sendFeedback(() -> Text.of("Minimum events set to: " + events), true);
@@ -96,13 +97,6 @@ public class ModCommands {
                                         ServerCommandSource source = context.getSource();
                                         ConfigHandler.setEventSummary("");
                                         source.sendFeedback(() -> Text.of("Event summary cleared"), true);
-                                        return 1;
-                                    })
-                            ).then(CommandManager.literal("report") // Report event summary
-                                    .executes(context -> {
-                                        ServerCommandSource source = context.getSource();
-                                        ConfigHandler.setReportSummary(!ConfigHandler.isReportSummary());
-                                        source.sendFeedback(() -> Text.of("Report summary is now " + ConfigHandler.isReportSummary()), true);
                                         return 1;
                                     })
                             )
@@ -142,8 +136,46 @@ public class ModCommands {
 
                                 return 1;
                             })
-                    )
-            );
+                    ).then(CommandManager.literal("help")
+                            .executes(context -> {
+                                ServerCommandSource source = context.getSource();
+                                source.sendFeedback(() -> Text.of("Commands: \n" +
+                                        "/gptmc godmode enable - Enable god mode\n" +
+                                        "/gptmc godmode disable - Disable god mode\n" +
+                                        "/gptmc godmode status - Get god mode status\n" +
+                                        "/gptmc godmode morals set <morals> - Set god mode morals\n" +
+                                        "/gptmc godmode morals clear - Clear god mode morals\n" +
+                                        "/gptmc godmode morals get - Get god mode morals\n" +
+                                        "/gptmc minimumevents set <minevents> - Set minimum events\n" +
+                                        "/gptmc minimumevents get - Get minimum events\n" +
+                                        "/gptmc minimumevents reset - Reset minimum events\n" +
+                                        "/gptmc summary get - Get event summary\n" +
+                                        "/gptmc summary clear - Clear event summary\n" +
+                                        "/gptmc interval get - Get summarization interval\n" +
+                                        "/gptmc interval set <interval> - Set summarization interval\n" +
+                                        "/gptmc <prompt> - Get response from OpenAI\n" +
+                                        "/gptmc help - Get help"), false);
+                                return 1;
+                            })
+                    ).then(CommandManager.literal("debug")
+                            .then(CommandManager.literal("response")
+                                    .executes(context -> {
+                                        ConfigHandler.setReportResponse(!ConfigHandler.isReportResponse());
+                                        String value = ConfigHandler.isReportResponse() ? "enabled" : "disabled";
+                                        ServerCommandSource source = context.getSource();
+                                        source.sendFeedback(() -> Text.of("Response reports " + value), true);
+                                        return 1;
+                                    }))
+                            .then(CommandManager.literal("summary")
+                                    .executes(context -> {
+                                        ConfigHandler.setReportSummary(!ConfigHandler.isReportSummary());
+                                        String value = ConfigHandler.isReportSummary() ? "enabled" : "disabled";
+                                        ServerCommandSource source = context.getSource();
+                                        source.sendFeedback(() -> Text.of("Summary reports " + value), true);
+                                        return 1;
+                                    })
+                            )
+            ));
         });
     }
 }

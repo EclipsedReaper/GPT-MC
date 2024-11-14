@@ -1,5 +1,6 @@
 package com.bg03.gptmc;
 
+import com.bg03.gptmc.openai.OpenAIHelper;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import static com.bg03.gptmc.openai.OpenAIHelper.evaluateResponse;
 import static com.bg03.gptmc.PlayerUtils.sendMessageToOperators;
 
 public class ModEventListeners {
@@ -82,12 +84,18 @@ public class ModEventListeners {
             public void run() {
                 if (!recentActions.isEmpty() && recentActions.size() >= ConfigHandler.getMinEvents() && ConfigHandler.isGodMode()) {
                     OpenAIHelper.summarizePastEvents()
-                            .thenAccept(response -> {
-                                ConfigHandler.setEventSummary(response);
+                            .thenAccept(summary -> {
+                                ConfigHandler.setEventSummary(summary);
                                 if (ConfigHandler.isReportSummary()) {
                                     sendMessageToOperators(GPTMC.server, ConfigHandler.getEventSummary());
                                 }
-                                OpenAIHelper.getResponseFromOpenAI(response).thenAccept(OpenAIHelper::evaluateResponse);
+                                OpenAIHelper.getResponseFromOpenAI(summary)
+                                        .thenAccept(response -> {
+                                            if (ConfigHandler.isReportResponse()) {
+                                                sendMessageToOperators(GPTMC.server, response);
+                                            }
+                                            evaluateResponse(response);
+                                        });
                             });
                 }
                 recentActions.clear();

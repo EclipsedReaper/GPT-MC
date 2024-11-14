@@ -1,5 +1,7 @@
 package com.bg03.gptmc;
 
+import com.bg03.gptmc.timers.GPTMCLightningTimer;
+import com.bg03.gptmc.timers.GPTMCTimer;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -20,6 +22,8 @@ public class GPTMC implements ModInitializer {
 		registerCommands();
 		registerEventListeners();
 		ConfigHandler.loadConfig();
+		GPTMCTimer.register();
+		GPTMCLightningTimer.register();
 
 		ServerLifecycleEvents.SERVER_STARTING.register(server -> {
 			GPTMC.server = server;
