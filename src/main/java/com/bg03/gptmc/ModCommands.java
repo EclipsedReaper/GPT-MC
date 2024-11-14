@@ -143,18 +143,13 @@ public class ModCommands {
                                         "/gptmc godmode enable - Enable god mode\n" +
                                         "/gptmc godmode disable - Disable god mode\n" +
                                         "/gptmc godmode status - Get god mode status\n" +
-                                        "/gptmc godmode morals set <morals> - Set god mode morals\n" +
-                                        "/gptmc godmode morals clear - Clear god mode morals\n" +
-                                        "/gptmc godmode morals get - Get god mode morals\n" +
-                                        "/gptmc minimumevents set <minevents> - Set minimum events\n" +
-                                        "/gptmc minimumevents get - Get minimum events\n" +
-                                        "/gptmc minimumevents reset - Reset minimum events\n" +
-                                        "/gptmc summary get - Get event summary\n" +
-                                        "/gptmc summary clear - Clear event summary\n" +
-                                        "/gptmc interval get - Get summarization interval\n" +
-                                        "/gptmc interval set <interval> - Set summarization interval\n" +
-                                        "/gptmc <prompt> - Get response from OpenAI\n" +
-                                        "/gptmc help - Get help"), false);
+                                        "/gptmc godmode morals <set|get|clear> - Set/get/clear god mode morals\n" +
+                                        "/gptmc minimumevents <set|get|reset> - Set/get/reset minimum events\n" +
+                                        "/gptmc summary <get|clear> - Get event summary\n" +
+                                        "/gptmc interval <get|set> - Get/set summarization interval\n" +
+                                        "/gptmc prompt <prompt> - Get response from ChatGPT\n" +
+                                        "/gptmc help - Get help\n" +
+                                        "/gptmc debug <response|summary> - Report response/summary from ChatGPT"), false);
                                 return 1;
                             })
                     ).then(CommandManager.literal("debug")
