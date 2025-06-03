@@ -1,6 +1,6 @@
-package com.bg03.gptmc;
+package com.eclipse.gptmc;
 
-import com.bg03.gptmc.openai.OpenAIHelper;
+import com.eclipse.gptmc.openai.OpenAIHelper;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.server.command.CommandManager;

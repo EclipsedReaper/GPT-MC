@@ -1,7 +1,7 @@
-package com.bg03.gptmc;
+package com.eclipse.gptmc;
 
-import com.bg03.gptmc.timers.GPTMCLightningTimer;
-import com.bg03.gptmc.timers.GPTMCTimer;
+import com.eclipse.gptmc.timers.GPTMCLightningTimer;
+import com.eclipse.gptmc.timers.GPTMCTimer;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -9,8 +9,8 @@ import net.minecraft.server.MinecraftServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.bg03.gptmc.ModCommands.registerCommands;
-import static com.bg03.gptmc.ModEventListeners.registerEventListeners;
+import static com.eclipse.gptmc.ModCommands.registerCommands;
+import static com.eclipse.gptmc.ModEventListeners.registerEventListeners;
 
 public class GPTMC implements ModInitializer {
 	public static final String MOD_ID = "gpt-mc";

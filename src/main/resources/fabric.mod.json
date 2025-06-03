@@ -3,29 +3,26 @@
 	"id": "gpt-mc",
 	"version": "${version}",
 	"name": "GPT-MC",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Add ChatGPT to Minecraft.",
 	"authors": [
-		"Me!"
+		"EclipsedReaper"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
-	"license": "CC0-1.0",
-	"icon": "assets/gpt-mc/icon.png",
+	"license": "MIT",
+	"icon": "assets/gpt-mc/logo.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"com.bg03.gptmc.GPTMC"
+			"com.eclipse.gptmc.GPTMC"
 		]
 	},
 	"depends": {
-		"fabricloader": ">=0.16.9",
-		"minecraft": "~1.21.3",
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.5",
 		"java": ">=21",
-		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
+		"fabric-api": "0.125.3+1.21.5"
 	}
 }
