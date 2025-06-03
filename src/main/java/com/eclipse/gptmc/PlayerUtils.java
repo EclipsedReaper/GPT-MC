@@ -1,21 +1,16 @@
-package com.bg03.gptmc;
+package com.eclipse.gptmc;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.effect.StatusEffect;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 
-import static com.bg03.gptmc.GPTMC.server;
-import static com.bg03.gptmc.ModEventListeners.recentActions;
+import static com.eclipse.gptmc.GPTMC.server;
 
 public class PlayerUtils {
 

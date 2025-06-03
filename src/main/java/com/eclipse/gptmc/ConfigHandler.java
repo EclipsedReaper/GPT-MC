@@ -1,4 +1,4 @@
-package com.bg03.gptmc;
+package com.eclipse.gptmc;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;

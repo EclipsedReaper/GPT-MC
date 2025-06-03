@@ -1,6 +1,6 @@
-package com.bg03.gptmc.timers;
+package com.eclipse.gptmc.timers;
 
-import com.bg03.gptmc.PlayerUtils;
+import com.eclipse.gptmc.PlayerUtils;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.network.ServerPlayerEntity;
 

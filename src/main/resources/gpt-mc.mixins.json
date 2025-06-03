@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "com.bg03.gptmc.mixins",
+  "package": "com.eclipse.gptmc.mixins",
   "compatibilityLevel": "JAVA_21",
   "injectors": {
     "defaultRequire": 1

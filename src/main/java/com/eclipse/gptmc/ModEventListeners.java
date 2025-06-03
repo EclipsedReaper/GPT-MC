@@ -1,19 +1,22 @@
-package com.bg03.gptmc;
+package com.eclipse.gptmc;
 
-import com.bg03.gptmc.openai.OpenAIHelper;
+import com.eclipse.gptmc.openai.OpenAIHelper;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.message.v1.ServerMessageEvents;
 import net.minecraft.entity.mob.MobEntity;
+import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.util.ActionResult;
+import net.minecraft.world.World;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import static com.bg03.gptmc.openai.OpenAIHelper.evaluateResponse;
-import static com.bg03.gptmc.PlayerUtils.sendMessageToOperators;
+import static com.eclipse.gptmc.openai.OpenAIHelper.evaluateResponse;
+import static com.eclipse.gptmc.PlayerUtils.sendMessageToOperators;
 
 public class ModEventListeners {
     public static final List<String> recentActions = new ArrayList<>();
@@ -42,6 +45,12 @@ public class ModEventListeners {
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
             String action = player.getName().getString() + " broke a " + state.getBlock().getTranslationKey();
             recentActions.add(action);
+        });
+
+        UseBlockCallback.EVENT.register((player, world, hand, result) -> {
+            String action = player.getName().getString() + " placed a " + world.getBlockState(result.getBlockPos()).getBlock().getTranslationKey();
+            recentActions.add(action);
+            return ActionResult.PASS;
         });
 
         AttackEntityCallback.EVENT.register((player, world, hand, entity, entityHitResult) -> {

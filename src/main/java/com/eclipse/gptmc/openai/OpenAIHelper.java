@@ -1,10 +1,10 @@
-package com.bg03.gptmc.openai;
+package com.eclipse.gptmc.openai;
 
-import com.bg03.gptmc.ConfigHandler;
-import com.bg03.gptmc.GPTMC;
-import com.bg03.gptmc.ModEventListeners;
-import com.bg03.gptmc.PlayerUtils;
-import com.bg03.gptmc.timers.GPTMCLightningTimer;
+import com.eclipse.gptmc.ConfigHandler;
+import com.eclipse.gptmc.GPTMC;
+import com.eclipse.gptmc.ModEventListeners;
+import com.eclipse.gptmc.PlayerUtils;
+import com.eclipse.gptmc.timers.GPTMCLightningTimer;
 import com.google.gson.JsonParser;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.TntEntity;
@@ -25,9 +25,9 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import static com.bg03.gptmc.GPTMC.server;
-import static com.bg03.gptmc.ModEventListeners.recentActions;
-import static com.bg03.gptmc.PlayerUtils.smitePlayer;
+import static com.eclipse.gptmc.GPTMC.server;
+import static com.eclipse.gptmc.ModEventListeners.recentActions;
+import static com.eclipse.gptmc.PlayerUtils.smitePlayer;
 
 public class OpenAIHelper {
     public static final String API_KEY = System.getenv("OPENAI_API_KEY");
@@ -115,7 +115,7 @@ public class OpenAIHelper {
     }
 
     public static CompletableFuture<String> getResponseFromOpenAI(String prompt) {
-        return getResponseFromOpenAI(prompt, "gpt-4-turbo");
+        return getResponseFromOpenAI(prompt, "gpt-4.1-nano");
     }
 
     public static CompletableFuture<String> summarizePastEvents() {
